@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Runtime data
+attendance.db
+attendance.db-journal
+logs/
+
+# Third-party clone (re-fetchable; also contains paths invalid on Windows)
+third_party/
+
+# Large model binaries — re-generate via tools/convert_antispoof.py
+models/models/anti_spoof/*.onnx
+models/models/anti_spoof/*.onnx.data
+
+# IDE
+.vscode/
+.idea/
+*.swp

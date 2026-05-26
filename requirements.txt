@@ -1,0 +1,4 @@
+openvino
+opencv-python
+numpy
+scipy
