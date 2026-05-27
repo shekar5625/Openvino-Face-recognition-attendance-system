@@ -153,6 +153,13 @@ def build_argparser():
                           'Set to empty string to disable attendance logging.')
     att.add_argument('--snapshot_dir', default='logs/snapshots',
                      help='Optional. Directory to store attendance face snapshots.')
+    att.add_argument('--camera_role', default='entry', choices=('entry', 'exit'),
+                     help='Optional. Role of this camera. Logged on every event '
+                          'and used to derive first-entry / last-exit per day.')
+    att.add_argument('--event_cooldown_s', type=float, default=30.0,
+                     help='Optional. After logging an event for a given person '
+                          'at this camera, suppress further events for the same '
+                          'person at this camera for this many seconds.')
     return parser
 
 
@@ -283,7 +290,9 @@ class FrameProcessor:
 
         self.attendance = None
         if args.db_url:
-            self.attendance = AttendanceLogger(args.db_url, args.snapshot_dir)
+            self.attendance = AttendanceLogger(args.db_url, args.snapshot_dir,
+                                               camera_role=args.camera_role,
+                                               event_cooldown_s=args.event_cooldown_s)
             log.info('Attendance logging enabled: %s', args.db_url)
         # Most-recent "✓ marked" banner shown on screen.
         self.flash = None  # (name, time_str, expires_at_monotonic)
@@ -415,7 +424,9 @@ def draw_flash(frame, frame_processor):
     overlay = frame.copy()
     cv2.rectangle(overlay, (0, 0), (w, banner_h), (0, 180, 0), -1)
     cv2.addWeighted(overlay, 0.85, frame, 0.15, 0, frame)
-    msg = 'Marked: {} at {}'.format(name, time_str)
+    role = frame_processor.attendance.camera_role.capitalize() \
+        if frame_processor.attendance is not None else 'Marked'
+    msg = '{}: {} at {}'.format(role, name, time_str)
     cv2.putText(frame, msg, (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
 
 
